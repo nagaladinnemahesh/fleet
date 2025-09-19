@@ -18,8 +18,8 @@ router.get("/", async (req, res) => {
 
 router.post("/", async (req, res) => {
   try {
-    const { name, licenseNo, contactNo, availability } = req.body;
-    const newDriver = new Driver({ name, licenseNo, contactNo, availability });
+    const { name, licenseNo, contact, availability } = req.body;
+    const newDriver = new Driver({ name, licenseNo, contact, availability });
     await newDriver.save();
     res.status(201).json(newDriver);
   } catch (error) {
@@ -38,4 +38,4 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-export default Router;
+export default router;

@@ -1,25 +1,25 @@
 import mongoose from "mongoose";
 
-const driverSchema = new mongoose.Schema({
+const vehicleSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true
     },
-    licenseNo: {
+    vehicleNo: {
         type: String,
         required: true,
         unique: true
     },
-    contact: {
-        type: String,
-        required: true
+    capacity: {
+        type: Number,
+        requied: true
     },
-    availability: {
+    status: {
         type: String,
         required: true
     }
 });
 
-const Driver = mongoose.model("Driver", driverSchema);
+const Vehicle = mongoose.model("Vehicle", vehicleSchema);
 
-export default Driver;
+export default Vehicle;

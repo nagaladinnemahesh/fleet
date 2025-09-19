@@ -5,6 +5,7 @@ import express, { json } from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import driverRoutes from "./routes/driverRoutes.js";
+import vehicleRoutes from "./routes/vehicleRoutes.js"
 
 const app = express();
 
@@ -12,6 +13,7 @@ app.use(cors()); // allows requests from frontend
 app.use(express.json()); // parse json bodies
 
 app.use("/api/drivers", driverRoutes);
+app.use("/api/vehicles", vehicleRoutes)
 
 const PORT = process.env.PORT || 5000;
 

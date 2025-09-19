@@ -1,27 +1,45 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
-function Vehicles({vehicles, setVehicles}) {
-  const [vehicleName, setVehicleName] = useState("");
+function Vehicles({ vehicles, setVehicles }) {
+  const [name, setName] = useState("");
+  const [vehicleNo, setVehicleNo] = useState("");
   const [capacity, setCapacity] = useState("");
   const [status, setStatus] = useState("");
 
-  const handleAddVehicle = () => {
-    const newVehicle = {
-      id: Date.now(),
-      vehicleName: vehicleName,
-      capacity: capacity,
-      status: status,
-    };
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/api/vehicles")
+      .then((res) => setVehicles(res.data))
+      .catch((err) => {
+        console.error(err);
+      });
+  });
 
-    setVehicles([...vehicles, newVehicle]);
-    setVehicleName("");
-    setCapacity("");
-    setStatus("");
+  const handleAddVehicle = async () => {
+    const newVehicle = { name, vehicleNo, capacity, status };
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/vehicles",
+        newVehicle
+      );
+      setVehicles([...vehicles, res.data]);
+      setName("");
+      setVehicleNo("");
+      setCapacity("");
+      setStatus("");
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const handleDeleteVehicle = (id) => {
-    const updated = vehicles.filter((v) => v.id !== id);
-    setVehicles(updated);
+  const handleDeleteVehicle = async (id) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/vehicles/${id}`);
+      setVehicles(vehicles.filter((v) => v._id !== id));
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
@@ -31,8 +49,14 @@ function Vehicles({vehicles, setVehicles}) {
         <input
           type="text"
           placeholder="Vehicle Name"
-          value={vehicleName}
-          onChange={(event) => setVehicleName(event.target.value)}
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Vehicle No"
+          value={vehicleNo}
+          onChange={(event) => setVehicleNo(event.target.value)}
         />
         <input
           type="text"
@@ -50,10 +74,10 @@ function Vehicles({vehicles, setVehicles}) {
       <button onClick={handleAddVehicle}>Add Vehicle</button>
       <ul>
         {vehicles.map((eachVehicle) => (
-          <li key={eachVehicle.id}>
-            {eachVehicle.vehicleName} | {eachVehicle.capacity} |{" "}
-            {eachVehicle.status}
-            <button onClick={() => handleDeleteVehicle(eachVehicle.id)}>
+          <li key={eachVehicle._id}>
+            {eachVehicle.name} | {eachVehicle.vehicleNo} |{" "}
+            {eachVehicle.capacity} |{eachVehicle.status}
+            <button onClick={() => handleDeleteVehicle(eachVehicle._id)}>
               Delete
             </button>
           </li>
