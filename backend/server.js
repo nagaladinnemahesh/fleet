@@ -17,6 +17,13 @@ app.use(express.json());
 // Public routes
 app.use("/api/auth", authRoutes);
 
+// after all routes
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: "Something went wrong!", error: err.message });
+});
+
+
 // Protected routes
 app.use("/api/drivers", authMiddleware, driverRoutes);
 app.use("/api/vehicles", authMiddleware, vehicleRoutes);

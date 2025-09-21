@@ -13,7 +13,7 @@ function Drivers({drivers, setDrivers}){
         .catch(err => {
             console.error(err)
         })
-    })
+    }, [setDrivers])
 
     const handleAddDriver = async () => {
         const newDriver = {name, licenseNo, contact, availability};
@@ -49,7 +49,7 @@ function Drivers({drivers, setDrivers}){
             <button onClick={handleAddDriver}>Add Driver</button>
             <ul>
                 {drivers.map((each_driver) => (
-                    <li key={each_driver.id}>
+                    <li key={each_driver._id}>
                         {each_driver.name} | {each_driver.licenseNo} | {each_driver.contact} | {each_driver.availability}
                         <button onClick={() => handleDeleteDriver(each_driver._id)}>Delete</button>
                     </li>

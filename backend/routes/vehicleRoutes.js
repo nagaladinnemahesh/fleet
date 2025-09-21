@@ -1,40 +1,55 @@
 import express, { Router } from "express";
 import Vehicle from "../models/Vehicle.js";
+import { authMiddleware, roleMiddleware } from "../middleware/authMiddleware.js";
+import Driver from "../models/Driver.js";
 
 const router = express.Router();
 
-// get all vehicles list
+// only superadmins can add vehicles
 
-router.get("/", async (req,res) => {
+router.post("/", authMiddleware, roleMiddleware(["superadmin"]), async (req, res) => {
+    try {
+        const vehicle = new Vehicle(req.body);
+        await vehicle.save();
+        res.status(200).json({vehicle})
+    } catch(error){
+        res.status(500).json({message: "Error creating Vehicle", error: error.message})
+    }
+});
+
+// get all vehicles list client and admin
+
+router.get("/", authMiddleware, roleMiddleware(["superadmin","client"]), async (req,res) => {
     try {
         const vehicles = await Vehicle.find();
         res.json(vehicles);
     } catch(err){
-        res.status(500).json({message: "Error fetching Details"});
+        res.status(500).json({message: "Error fetching Details", error: err.message});
     }
 })
 
-// add vehicles
+//update vehicles list
 
-router.post("/", async (req, res) => {
+router.put("/:id", authMiddleware, roleMiddleware(["superadmin"]), async (req, res) => {
     try{
-        const {name, vehicleNo, capacity, status} = req.body;
-        const newVehicle = new Vehicle({name, vehicleNo, capacity, status});
-        await newVehicle.save();
-    } catch(err){
-        res.status({message: "Error adding vehicle"})
+        const updatedVehicle = Vehicle.findByIdAndUpdate(req.params.id, req.body, {new: true});
+        if (!updatedVehicle) return res.status(404).json({message: "Vehicle not found"});
+        res.json(updatedVehicle);
+    } catch(error){
+        res.status(500).json({message: "Error updating Vehicle", error: error.message});
     }
 })
 
-// delete vehicle
+// only superadmin can delete vehicle
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authMiddleware, roleMiddleware(["superadmin"]), async (req, res) => {
     try{
-        await Vehicle.findByIdAndDelete(req.params.id);
-        res.json({message: "Vehicle Deleted"})
+        const deletedVehicle =  Vehicle.findByIdAndDelete(req.params.id);
+        if (!deletedVehicle) return (res.status(404).json({message: "Vehicle not found"}));
+        res.json({message: "Vehicle Deleted successfully"});
     } catch(err){
-        res.status(500).json({message: "Error deleteing Vehicle"})
+        res.status(500).json({message: "Error deleteing Vehicle", error: err.message})
     }
-})
+});
 
 export default router;
