@@ -1,33 +1,36 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import express, { json } from "express";
+import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import driverRoutes from "./routes/driverRoutes.js";
 import vehicleRoutes from "./routes/vehicleRoutes.js";
-import authRoutes from "./routes/authRoutes.js"
+import authRoutes from "./routes/authRoutes.js";
+import { authMiddleware } from "./middleware/authMiddleware.js";
 
 const app = express();
 
-app.use(cors()); // allows requests from frontend
-app.use(express.json()); // parse json bodies
+app.use(cors());
+app.use(express.json());
 
-app.use("/api/drivers", driverRoutes);
-app.use("/api/vehicles", vehicleRoutes);
+// Public routes
 app.use("/api/auth", authRoutes);
+
+// Protected routes
+app.use("/api/drivers", authMiddleware, driverRoutes);
+app.use("/api/vehicles", authMiddleware, vehicleRoutes);
 
 const PORT = process.env.PORT || 5000;
 
 app.get("/", (req, res) => {
-  res.send("API is running successfully!"); // test route
+  res.send("API is running successfully!");
 });
 
 const mongoUri = process.env.MONGO_URI || "";
 
 mongoose
-  .connect(mongoUri, {   // to print success, failures to console
-  })
+  .connect(mongoUri)
   .then(() => console.log("MongoDB connected"))
   .catch((err) => {
     console.error("MongoDB connection Error:", err.message);
@@ -37,4 +40,3 @@ mongoose
 app.listen(PORT, () => {
   console.log(`Server listening on PORT: ${PORT}`);
 });
-
