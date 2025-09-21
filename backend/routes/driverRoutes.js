@@ -1,40 +1,56 @@
 import express, { Router } from "express";
 import Driver from "../models/Driver.js";
+import {authMiddleware, roleMiddleware} from "../middleware/authMiddleware.js";
+import { getDrivers } from "../controllers/driverController.js";
 
 const router = express.Router();
 
-// Get all drivers list
+// only superadmin can add drivers
 
-router.get("/", async (req, res) => {
+router.post("/", authMiddleware, roleMiddleware(["superadmin"]), async(req, res) => {
+  try {
+    const driver = new Driver(req.body);
+    await driver.save();
+    res.status(201).json(driver);
+  } catch(error){
+    res.status(500).json({message: "Error creating driver", error: error.message});
+  }
+});
+
+
+// clients and super admins can view drivers
+
+router.get("/", authMiddleware, getDrivers, roleMiddleware(["superadmin","client"]), async (req, res) => {
   try {
     const drivers = await Driver.find();
     res.json(drivers);
   } catch (error) {
-    res.status(500).json({ message: "Error fetching details" });
+    res.status(500).json({ message: "Error fetching details", error: error.message });
   }
 });
 
-// add new driver
 
-router.post("/", async (req, res) => {
+// super admin can update drivers
+
+router.put("/:id", authMiddleware, roleMiddleware(["superadmin"]), async (req, res) => {
   try {
-    const { name, licenseNo, contact, availability } = req.body;
-    const newDriver = new Driver({ name, licenseNo, contact, availability });
-    await newDriver.save();
-    res.status(201).json(newDriver);
-  } catch (error) {
-    res.status(500).json({ message: "Error adding driver" });
+    const updatedDriver = await Driver.findByIdAndUpdate(req.params.id, req.body, {new: true});
+    if (!updatedDriver) return res.status(404).json({message: "Driver not found"});
+    res.json(updatedDriver);
+  } catch(error){
+    res.status(500).json({message: "Error updating driver", error: error.message});
   }
 });
 
-// delete driver
+// super admin can delete driver
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authMiddleware, roleMiddleware(["superadmin"]), async (req, res) => {
   try {
-    await Driver.findByIdAndDelete(req.params.id);
-    res.json({ message: "Driver Deleted" });
+    const deletedDriver = Driver.findByIdAndDelete(req.params.id);
+    if (!deletedDriver) return res.status(404).json({message: "Driver not found"});
+    res.json({message: 'Driver deleted successfully'});
   } catch (error) {
-    res.status(500).json({ message: "Error deleting Driver" });
+    res.status(500).json({ message: "Error deleting Driver", error: error.message});
   }
 });
 

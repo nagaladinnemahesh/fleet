@@ -14,7 +14,7 @@ function Vehicles({ vehicles, setVehicles }) {
       .catch((err) => {
         console.error(err);
       });
-  });
+  },[setVehicles]);
 
   const handleAddVehicle = async () => {
     const newVehicle = { name, vehicleNo, capacity, status };

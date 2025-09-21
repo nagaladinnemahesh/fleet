@@ -5,9 +5,9 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: {
     type: String,
-    enum: ["superadmin", "client", "driver"], // restrict values
-    default: "client", // if nothing is provided
-  },
+    enum: ["superadmin", "client", "driver"],
+    default: "client"
+  }
 });
 
 const User = mongoose.model("User", userSchema);

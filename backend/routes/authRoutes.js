@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.post("/register", async(req, res) => {
     try{
-        const {username, password} = req.body;
+        const {username, password, role} = req.body;
 
         // checking if user exists
 
@@ -23,12 +23,12 @@ router.post("/register", async(req, res) => {
 
         // saving a new user
 
-        const newUser = new User({username, password: hashedPassword});
+        const newUser = new User({username, password: hashedPassword, role: role || "client"});
         await newUser.save();
 
         res.status(201).json({message: "user registered successfully"});
     } catch(err){
-        res.status(500).json({message: "Server Error"})
+        res.status(500).json({message: "Registration failed", error: err.message})
     }
 });
 
@@ -46,7 +46,7 @@ router.post("/login", async (req, res) => {
         if (!isMatch) return res.status(400).json({message: "Invalid password"});
 
         // create JWT token
-        const token = jwt.sign({id: user._id}, "secretkey",{expiresIn: "1h"});
+        const token = jwt.sign({id: user._id},process.env.JWT_SECRET,{expiresIn: "1h"});
         res.json({token});
     } catch(err){
         res.status(500).json({message: "Server Error"})
@@ -54,3 +54,4 @@ router.post("/login", async (req, res) => {
 });
 
 export default router;
+
