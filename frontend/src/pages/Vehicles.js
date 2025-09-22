@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+// import axios from "axios";
+import API from "../api";
 
 function Vehicles({ vehicles, setVehicles }) {
   const [name, setName] = useState("");
@@ -8,34 +9,36 @@ function Vehicles({ vehicles, setVehicles }) {
   const [status, setStatus] = useState("");
 
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/api/vehicles")
-      .then((res) => setVehicles(res.data))
-      .catch((err) => {
-        console.error(err);
-      });
-  },[setVehicles]);
+    const fetchVehicles = async () => {
+      const res = await API.get("/vehicles");
+      setVehicles(res.data.data);
+    };
+    fetchVehicles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const handleAddVehicle = async () => {
-    const newVehicle = { name, vehicleNo, capacity, status };
+  const handleAddVehicle = async (e) => {
+    e.preventDefault();
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/vehicles",
-        newVehicle
-      );
+      const res = await API.post("/vehicles", {
+        name,
+        vehicleNo,
+        capacity,
+        status,
+      });
       setVehicles([...vehicles, res.data]);
       setName("");
       setVehicleNo("");
       setCapacity("");
       setStatus("");
     } catch (err) {
-      console.error(err);
+      console.error("Error adding vehicle:", err);
     }
   };
 
   const handleDeleteVehicle = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/vehicles/${id}`);
+      await API.delete(`/vehicles/${id}`);
       setVehicles(vehicles.filter((v) => v._id !== id));
     } catch (err) {
       console.error(err);
@@ -65,7 +68,7 @@ function Vehicles({ vehicles, setVehicles }) {
           onChange={(event) => setCapacity(event.target.value)}
         />
         <input
-          type="tex"
+          type="text"
           placeholder="Status"
           value={status}
           onChange={(event) => setStatus(event.target.value)}
@@ -73,11 +76,11 @@ function Vehicles({ vehicles, setVehicles }) {
       </form>
       <button onClick={handleAddVehicle}>Add Vehicle</button>
       <ul>
-        {vehicles.map((eachVehicle) => (
-          <li key={eachVehicle._id}>
-            {eachVehicle.name} | {eachVehicle.vehicleNo} |{" "}
-            {eachVehicle.capacity} |{eachVehicle.status}
-            <button onClick={() => handleDeleteVehicle(eachVehicle._id)}>
+        {vehicles.map((each_vehicle) => (
+          <li key={each_vehicle._id}>
+            {each_vehicle.name} | {each_vehicle.vehicleNo} |{" "}
+            {each_vehicle.capacity} | {each_vehicle.status}
+            <button onClick={() => handleDeleteVehicle(each_vehicle._id)}>
               Delete
             </button>
           </li>

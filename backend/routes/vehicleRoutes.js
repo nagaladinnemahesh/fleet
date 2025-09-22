@@ -1,7 +1,7 @@
 import express, { Router } from "express";
 import Vehicle from "../models/Vehicle.js";
 import { authMiddleware, roleMiddleware } from "../middleware/authMiddleware.js";
-import Driver from "../models/Driver.js";
+import { getVehicles } from "../controllers/vehicleController.js";
 
 const router = express.Router();
 
@@ -19,7 +19,7 @@ router.post("/", authMiddleware, roleMiddleware(["superadmin"]), async (req, res
 
 // get all vehicles list client and admin
 
-router.get("/", authMiddleware, roleMiddleware(["superadmin","client"]), async (req,res) => {
+router.get("/", authMiddleware, getVehicles, roleMiddleware(["superadmin","client"]), async (req,res) => {
     try {
         const vehicles = await Vehicle.find();
         res.json(vehicles);
@@ -44,7 +44,7 @@ router.put("/:id", authMiddleware, roleMiddleware(["superadmin"]), async (req, r
 
 router.delete("/:id", authMiddleware, roleMiddleware(["superadmin"]), async (req, res) => {
     try{
-        const deletedVehicle =  Vehicle.findByIdAndDelete(req.params.id);
+        const deletedVehicle = await Vehicle.findByIdAndDelete(req.params.id);
         if (!deletedVehicle) return (res.status(404).json({message: "Vehicle not found"}));
         res.json({message: "Vehicle Deleted successfully"});
     } catch(err){

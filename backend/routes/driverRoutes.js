@@ -46,7 +46,7 @@ router.put("/:id", authMiddleware, roleMiddleware(["superadmin"]), async (req, r
 
 router.delete("/:id", authMiddleware, roleMiddleware(["superadmin"]), async (req, res) => {
   try {
-    const deletedDriver = Driver.findByIdAndDelete(req.params.id);
+    const deletedDriver = await Driver.findByIdAndDelete(req.params.id);
     if (!deletedDriver) return res.status(404).json({message: "Driver not found"});
     res.json({message: 'Driver deleted successfully'});
   } catch (error) {
