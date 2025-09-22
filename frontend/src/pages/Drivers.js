@@ -1,5 +1,6 @@
-import React, {useState, useEffect} from "react";
-import axios from "axios";
+import React, {useEffect, useState} from "react";
+// import axios from "axios";
+import API from "../api";
 
 function Drivers({drivers, setDrivers}){
     const [name, setName] = useState("");
@@ -8,33 +9,36 @@ function Drivers({drivers, setDrivers}){
     const [availability, setAvailability] = useState("");
 
     useEffect(() => {
-        axios.get("http://localhost:5000/api/drivers")
-        .then(res => setDrivers(res.data))
-        .catch(err => {
-            console.error(err)
-        })
-    }, [setDrivers])
+    const fetchDrivers = async () => {
+      const res = await API.get("/drivers");
+      setDrivers(res.data.data);
+    };
+    fetchDrivers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    const handleAddDriver = async () => {
-        const newDriver = {name, licenseNo, contact, availability};
+    const handleAddDriver = async (e) => {
+        e.preventDefault();
         try{
-            const res = await axios.post("http://localhost:5000/api/drivers", newDriver);
+            const res = await API.post("/drivers", {
+                name, licenseNo, contact, availability
+            });
             setDrivers([...drivers, res.data])
             setName("");
             setLicenseNo("");
             setContact("");
             setAvailability("");
         } catch(err){
-            console.error(err)
+            console.error("Error adding driver:", err);
         }
     }
 
     const handleDeleteDriver = async (id) => {
         try{
-            await axios.delete(`http://localhost:5000/api/drivers/${id}`);
-            setDrivers(drivers.filter(d => d._id !== id));
+            await API.delete(`/drivers/${id}`);
+            setDrivers(drivers.filter((d) => d._id !== id));
         } catch(err){
-            console.error(err)
+            console.error("Error deleting vehicle:", err);
         }
     }
 
