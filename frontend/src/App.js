@@ -46,7 +46,7 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Navbar />
+      <Navbar setIsLoggedIn={setIsLoggedIn}/>
       <div style={{ display: "flex" }}>
         <Sidebar />
         <div style={{ flex: 1, padding: "40px" }}>

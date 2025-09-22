@@ -19,10 +19,22 @@ router.post("/", authMiddleware, roleMiddleware(["superadmin"]), async (req, res
 
 // get all vehicles list client and admin
 
-router.get("/", authMiddleware, getVehicles, roleMiddleware(["superadmin","client"]), async (req,res) => {
+router.get("/", authMiddleware, roleMiddleware(["superadmin","client"]), async (req,res) => {
     try {
-        const vehicles = await Vehicle.find();
-        res.json(vehicles);
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 5;
+        const skip = (page - 1) * limit;
+
+        const total = await Vehicle.countDocuments();
+        const vehicles = await Vehicle.find().skip(skip).limit(limit);
+        res.json({
+            success: true,
+            data: vehicles,
+            total,
+            totalPages: Math.ceil(total / limit),
+            page,
+            limit,  
+        });
     } catch(err){
         res.status(500).json({message: "Error fetching Details", error: err.message});
     }

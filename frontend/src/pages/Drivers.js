@@ -1,5 +1,4 @@
 import React, {useEffect, useState} from "react";
-// import axios from "axios";
 import API from "../api";
 
 function Drivers({drivers, setDrivers}){
@@ -7,23 +6,35 @@ function Drivers({drivers, setDrivers}){
     const [licenseNo, setLicenseNo] = useState("");
     const [contact, setContact] = useState("");
     const [availability, setAvailability] = useState("");
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
+    const limit = 5;
+    
+    const fetchDrivers = async (currentPage = page) => {
+        try {
+            const res = await API.get(`/drivers?page=${currentPage}&limit=${limit}`);
+            setDrivers(res.data.data);
+            setTotalPages(res.data.totalPages);    
+        } catch (err) {
+            console.error("Error fetching drivers:", err);
+        }
+    }
 
     useEffect(() => {
-    const fetchDrivers = async () => {
-      const res = await API.get("/drivers");
-      setDrivers(res.data.data);
-    };
-    fetchDrivers();
+    fetchDrivers(page);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [page]);
+
+    // console.log({ name, licenseNo, contact, availability });
+
 
     const handleAddDriver = async (e) => {
         e.preventDefault();
         try{
-            const res = await API.post("/drivers", {
+            await API.post("/drivers", {
                 name, licenseNo, contact, availability
             });
-            setDrivers([...drivers, res.data])
+            fetchDrivers(page);
             setName("");
             setLicenseNo("");
             setContact("");
@@ -36,9 +47,9 @@ function Drivers({drivers, setDrivers}){
     const handleDeleteDriver = async (id) => {
         try{
             await API.delete(`/drivers/${id}`);
-            setDrivers(drivers.filter((d) => d._id !== id));
+            fetchDrivers(page);
         } catch(err){
-            console.error("Error deleting vehicle:", err);
+            console.error("Error deleting driver:", err);
         }
     }
 
@@ -52,13 +63,33 @@ function Drivers({drivers, setDrivers}){
             </form>
             <button onClick={handleAddDriver}>Add Driver</button>
             <ul>
-                {drivers.map((each_driver) => (
-                    <li key={each_driver._id}>
-                        {each_driver.name} | {each_driver.licenseNo} | {each_driver.contact} | {each_driver.availability}
-                        <button onClick={() => handleDeleteDriver(each_driver._id)}>Delete</button>
-                    </li>
-                ))}
-            </ul>
+        {drivers.map((each_driver) => (
+          <li key={each_driver._id}>
+            {each_driver.name} | {each_driver.licenseNo} | {each_driver.contact} |{" "}
+            {each_driver.availability}
+            <button onClick={() => handleDeleteDriver(each_driver._id)}>
+              Delete
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      {/* Pagination Controls */}
+      <div>
+        <button disabled={page === 1} onClick={() => setPage(page - 1)}>
+          Previous
+        </button>
+        <span>
+          {" "}
+          Page {page} of {totalPages}{" "}
+        </span>
+        <button
+          disabled={page === totalPages}
+          onClick={() => setPage(page + 1)}
+        >
+          Next
+        </button>
+      </div>
 
         </div>
     )
