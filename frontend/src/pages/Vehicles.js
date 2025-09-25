@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-// import axios from "axios";
 import API from "../api";
 
 function Vehicles({ vehicles, setVehicles }) {
@@ -7,26 +6,36 @@ function Vehicles({ vehicles, setVehicles }) {
   const [vehicleNo, setVehicleNo] = useState("");
   const [capacity, setCapacity] = useState("");
   const [status, setStatus] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const limit = 5;
+
+  const fetchVehicles = async (currentPage = page) => {
+        try {
+            const res = await API.get(`/vehicles?page=${currentPage}&limit=${limit}`);
+            setVehicles(res.data.data);
+            setTotalPages(res.data.totalPages);    
+        } catch (err) {
+            console.error("Error fetching vehicles:", err);
+        }
+    }
+
 
   useEffect(() => {
-    const fetchVehicles = async () => {
-      const res = await API.get("/vehicles");
-      setVehicles(res.data.data);
-    };
-    fetchVehicles();
+    fetchVehicles(page);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [page]);
 
   const handleAddVehicle = async (e) => {
     e.preventDefault();
     try {
-      const res = await API.post("/vehicles", {
+      await API.post("/vehicles", {
         name,
         vehicleNo,
         capacity,
         status,
       });
-      setVehicles([...vehicles, res.data]);
+      fetchVehicles(page);;
       setName("");
       setVehicleNo("");
       setCapacity("");
@@ -39,7 +48,7 @@ function Vehicles({ vehicles, setVehicles }) {
   const handleDeleteVehicle = async (id) => {
     try {
       await API.delete(`/vehicles/${id}`);
-      setVehicles(vehicles.filter((v) => v._id !== id));
+      fetchVehicles(page); 
     } catch (err) {
       console.error(err);
     }
@@ -78,14 +87,30 @@ function Vehicles({ vehicles, setVehicles }) {
       <ul>
         {vehicles.map((each_vehicle) => (
           <li key={each_vehicle._id}>
-            {each_vehicle.name} | {each_vehicle.vehicleNo} |{" "}
-            {each_vehicle.capacity} | {each_vehicle.status}
+            {each_vehicle.name} | {each_vehicle.vehicleNo} | {each_vehicle.capacity} |{" "}
+            {each_vehicle.status}
             <button onClick={() => handleDeleteVehicle(each_vehicle._id)}>
               Delete
             </button>
           </li>
         ))}
       </ul>
+      {/* Pagination Controls */}
+      <div>
+        <button disabled={page === 1} onClick={() => setPage(page - 1)}>
+          Previous
+        </button>
+        <span>
+          {" "}
+          Page {page} of {totalPages}{" "}
+        </span>
+        <button
+          disabled={page === totalPages}
+          onClick={() => setPage(page + 1)}
+        >
+          Next
+        </button>
+      </div>  
     </div>
   );
 }

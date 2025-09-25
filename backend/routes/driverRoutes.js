@@ -20,10 +20,22 @@ router.post("/", authMiddleware, roleMiddleware(["superadmin"]), async(req, res)
 
 // clients and super admins can view drivers
 
-router.get("/", authMiddleware, getDrivers, roleMiddleware(["superadmin","client"]), async (req, res) => {
+router.get("/", authMiddleware, roleMiddleware(["superadmin","client"]), async (req, res) => {
   try {
-    const drivers = await Driver.find();
-    res.json(drivers);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
+
+    const total = await Driver.countDocuments();
+    const drivers = await Driver.find().skip(skip).limit(limit) ;
+    res.json({
+      success: true,
+      data: drivers,
+      total,
+      totalPages: Math.ceil(total / limit),
+      page,
+      limit,
+    });
   } catch (error) {
     res.status(500).json({ message: "Error fetching details", error: error.message });
   }
